@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="WARN" monitorinterval="30">
+
+    <Properties>
+        <Property name="log.pattern">%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Property>
+    </Properties>
+
+    <appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <!--本地只打印ERROR级别及以上日志-->
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${log.pattern}"/>
+        </Console>
+
+        <Socket name="elkAppender" host="127.0.0.1" port="5601" protocol="tcp">
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            <JSONLog4j2Layout singleLine="false" locationInfo="true">
+                <UserField>
+                    <key>ServiceName</key>
+                    <value>l_novel</value>
+                </UserField>
+            </JSONLog4j2Layout>
+        </Socket>
+    </appenders>
+
+    <loggers>
+        <root level="INFO">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="elkAppender"/>
+        </root>
+    </loggers>
+
+</configuration>

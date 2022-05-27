@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Properties>
+        <Property name="PID">????</Property>
+        <Property name="log.pattern">%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}}{faint} %clr{%5p} %clr{${sys:PID}}{magenta} %clr{%-40.40c{1.}}{cyan} %clr{:}{faint} %m%n%xwEx</Property>
+
+        <Property name="log.path">logs</Property>
+        <Property name="log.filePattern">${log.path}/$${date:yyyy-MM-dd}/</Property>
+        <Property name="log.file.pattern">%d{yyyy-MM-dd HH:mm:ss} %level %c:%L - %m%n</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${log.pattern}"/>
+        </Console>
+
+        <!-- 这个会打印出所有的info及以下级别的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档 -->
+        <RollingFile name="RollingFileInfo" fileName="${log.path}/info.log"
+                     filePattern="${log.filePattern}/info-%d{yyyy-MM-dd}-%i.log.gz">
+            <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch） -->
+            <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${log.file.pattern}"/>
+            <Policies>
+                <!--日志文件一天打包一次-->
+                <TimeBasedTriggeringPolicy modulate="true" interval="1"/>
+                <!--日志文件满128M 进行打包-->
+                <SizeBasedTriggeringPolicy size="128 MB"/>
+            </Policies>
+            <!--DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了20-->
+            <DefaultRolloverStrategy max="180"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <logger name="com.baomidou" level="DEBUG"/>
+        <logger name="org.mybatis" level="DEBUG"/>
+        <logger name="com.lowellzhao" level="DEBUG"/>
+        <Root level="info">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="RollingFileInfo"/>
+        </Root>
+    </Loggers>
+</Configuration>
