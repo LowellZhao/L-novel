@@ -17,7 +17,7 @@ L-novel is one novel crawler
 抓取指定数据源的分类信息
 
 ```http
-curl --location --request POST '127.0.0.1:6666/lnovel/crawl/category' \
+curl --location --request POST '127.0.0.1:8080/lnovel/crawl/category' \
 --form 'sourceId="1"' 
 ```
 
@@ -26,7 +26,7 @@ curl --location --request POST '127.0.0.1:6666/lnovel/crawl/category' \
 抓取指定数据源的全部小说
 
 ```http
-curl --location --request POST '127.0.0.1:6666/lnovel/crawl' \
+curl --location --request POST '127.0.0.1:8080/lnovel/crawl' \
 --form 'sourceId="1"' 
 ```
 
@@ -35,7 +35,7 @@ curl --location --request POST '127.0.0.1:6666/lnovel/crawl' \
 抓取指定数据源的指定小说
 
 ```http
-curl --location --request POST '127.0.0.1:6666/lnovel/crawl/byBookId' \
+curl --location --request POST '127.0.0.1:8080/lnovel/crawl/byBookId' \
 --form 'sourceId="1"' \
 --form 'bookId="72336"'
 ```
@@ -44,5 +44,5 @@ curl --location --request POST '127.0.0.1:6666/lnovel/crawl/byBookId' \
 下载指定小说
 
 ```http
-curl --location --request GET 'http://127.0.0.1:6666/lnovel/crawl/download?bookId=29'
+curl --location --request GET 'http://127.0.0.1:8080/lnovel/crawl/download?bookId=1'
 ```

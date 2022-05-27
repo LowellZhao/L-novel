@@ -428,7 +428,8 @@ public class CrawlServiceImpl implements CrawlService {
         txt.append("\n 作者:").append(book.getAuthorName());
         txt.append("\n\n\n\n");
 
-        bookIndexList.sort(Comparator.comparing(BookIndex::getSortId).reversed());
+        // 排序，升序
+        bookIndexList.sort(Comparator.comparing(BookIndex::getSortId));
         for (BookIndex bookIndex : bookIndexList) {
             String content = bookContentMap.getOrDefault(bookIndex.getId(), "");
             txt.append(bookIndex.getTitle()).append("\n").append(content).append("\n\n");
