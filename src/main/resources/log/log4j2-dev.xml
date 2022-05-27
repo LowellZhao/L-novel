@@ -37,7 +37,7 @@
         <logger name="com.lowellzhao" level="DEBUG"/>
         <Root level="info">
             <appender-ref ref="Console"/>
-            <appender-ref ref="RollingFileInfo"/>
+            <!--<appender-ref ref="RollingFileInfo"/>-->
         </Root>
     </Loggers>
 </Configuration>

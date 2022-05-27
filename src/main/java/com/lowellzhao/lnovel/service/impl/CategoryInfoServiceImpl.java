@@ -26,4 +26,12 @@ public class CategoryInfoServiceImpl extends ServiceImpl<CategoryInfoMapper, Cat
         lambdaQueryWrapper.eq(CategoryInfo::getSourceId, sourceId);
         return this.list(lambdaQueryWrapper);
     }
+
+    @Override
+    public CategoryInfo getBySourceIdAndCid(Integer sourceId, String sourceCid) {
+        LambdaQueryWrapper<CategoryInfo> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(CategoryInfo::getSourceId, sourceId);
+        lambdaQueryWrapper.eq(CategoryInfo::getSourceCid, sourceCid);
+        return this.getOne(lambdaQueryWrapper);
+    }
 }

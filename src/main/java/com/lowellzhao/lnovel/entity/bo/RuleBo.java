@@ -2,9 +2,9 @@ package com.lowellzhao.lnovel.entity.bo;
 
 import lombok.Data;
 
+import java.util.Map;
+
 /**
- *
- *
  * @author lowellzhao
  * @date 2022/5/26
  */
@@ -83,4 +83,21 @@ public class RuleBo {
      * 分类页分类id 正则
      */
     private String categoryNamePatten;
+    /**
+     * 下一页目录地址 正则
+     */
+    private String nextIndexUrlPatten;
+    /**
+     * 网站前缀
+     */
+    private String webPreUrl;
+    /**
+     * 详情页分类id 正则
+     */
+    private String detailCategoryIdPatten;
+    /**
+     * 内容正则替换
+     */
+    private Map<String, String> contentPattenMap;
+
 }

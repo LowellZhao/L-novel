@@ -2,11 +2,11 @@ package com.lowellzhao.lnovel.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.lowellzhao.lnovel.common.util.HttpUtil;
+import com.lowellzhao.lnovel.common.vo.Result;
 import com.lowellzhao.lnovel.entity.Book;
 import com.lowellzhao.lnovel.entity.BookContent;
 import com.lowellzhao.lnovel.entity.BookIndex;
 import com.lowellzhao.lnovel.entity.CategoryInfo;
-import com.lowellzhao.lnovel.entity.CrawlSource;
 import com.lowellzhao.lnovel.entity.bo.RuleBo;
 import com.lowellzhao.lnovel.service.BookContentService;
 import com.lowellzhao.lnovel.service.BookIndexService;
@@ -14,12 +14,19 @@ import com.lowellzhao.lnovel.service.BookService;
 import com.lowellzhao.lnovel.service.CategoryInfoService;
 import com.lowellzhao.lnovel.service.CrawlService;
 import com.lowellzhao.lnovel.service.CrawlSourceService;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedOutputStream;
+import java.net.URLEncoder;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -48,15 +55,10 @@ public class CrawlServiceImpl implements CrawlService {
 
     @Override
     public void crawl(Integer sourceId) {
-        CrawlSource crawlSource = crawlSourceService.getById(sourceId);
-        if (crawlSource == null) {
+        RuleBo ruleBo = crawlSourceService.getRuleBoById(sourceId);
+        if (ruleBo == null) {
             return;
         }
-        String rule = crawlSource.getRule();
-        if (StringUtils.isBlank(rule)) {
-            return;
-        }
-        RuleBo ruleBo = JSON.parseObject(rule, RuleBo.class);
 
         // 分类集合
         List<CategoryInfo> categoryInfoList = categoryInfoService.listBySourceId(sourceId);
@@ -71,47 +73,55 @@ public class CrawlServiceImpl implements CrawlService {
                     .replace("{cid}", categoryInfo.getSourceCid())
                     .replace("{page}", page + "");
             String bookListHtml = HttpUtil.get(bookListUrl);
-            log.info(bookListHtml);
-            if (StringUtils.isBlank(bookListHtml)) {
-                continue;
+            // 循环分类页
+            while (StringUtils.isNotBlank(bookListHtml)) {
+                // 保存小说信息
+                // href="/s/(\d+)\.html"
+                Pattern bookIdPatten = Pattern.compile(ruleBo.getBookIdPatten());
+                Matcher bookIdMatcher = bookIdPatten.matcher(bookListHtml);
+                boolean isFindBookId = bookIdMatcher.find();
+                // 没有找到，可能是页面错误，跳出循环
+                if (!isFindBookId) {
+                    break;
+                }
+                while (isFindBookId) {
+                    // 爬虫源bookId
+                    String bookId = bookIdMatcher.group(1);
+                    log.warn("start bookId " + bookId);
+                    this.saveBookInfo(bookId, ruleBo, sourceId, categoryInfo.getId());
+                    log.warn("end bookId " + bookId);
+
+                    // 下一本小说
+                    isFindBookId = bookIdMatcher.find();
+                }
+
+                // 下一页小说
+                bookListUrl = ruleBo.getBookListUrl()
+                        .replace("{cid}", categoryInfo.getSourceCid())
+                        .replace("{page}", page++ + "");
+                bookListHtml = HttpUtil.get(bookListUrl);
             }
-            // 保存小说信息
-
-            // href="/s/(\d+)\.html"
-            Pattern bookIdPatten = Pattern.compile(ruleBo.getBookIdPatten());
-            Matcher bookIdMatcher = bookIdPatten.matcher(bookListHtml);
-            boolean isFindBookId = bookIdMatcher.find();
-            while (isFindBookId) {
-                // 爬虫源bookId
-                String bookId = bookIdMatcher.group(1);
-                log.warn(bookId);
-                this.saveBookInfo(bookId, ruleBo, categoryInfo);
-
-                // 下一本小说
-                isFindBookId = bookIdMatcher.find();
-            }
-
-            // todo 下一页小说
         }
     }
 
     /**
      * 保存小说信息
      *
-     * @param bookId       bookId
-     * @param ruleBo       规则
-     * @param categoryInfo 分类信息
+     * @param bookId   bookId
+     * @param ruleBo   规则
+     * @param sourceId 爬虫源id
+     * @param cid      分类id
      */
-    private void saveBookInfo(String bookId, RuleBo ruleBo, CategoryInfo categoryInfo) {
+    private void saveBookInfo(String bookId, RuleBo ruleBo, Integer sourceId, Integer cid) {
         Book nowBook = new Book();
-        nowBook.setSourceId(categoryInfo.getSourceId());
-        nowBook.setCid(categoryInfo.getId());
+        nowBook.setSourceId(sourceId);
+        nowBook.setCid(cid);
         nowBook.setSourceBookId(bookId);
         // https://wap.shuquge.com/s/{bookId}.html
         String bookDetailUrl = ruleBo.getBookDetailUrl().replace("{bookId}", bookId);
         // 小说详情页
         String bookDetailHtml = HttpUtil.get(bookDetailUrl);
-        log.info(bookDetailHtml);
+        // 没有内容，直接返回
         if (StringUtils.isBlank(bookDetailHtml)) {
             return;
         }
@@ -125,7 +135,6 @@ public class CrawlServiceImpl implements CrawlService {
             return;
         }
         String bookName = bookNameMatch.group(1);
-        log.info(bookName);
         nowBook.setBookName(bookName);
 
         // 作者名称
@@ -133,12 +142,11 @@ public class CrawlServiceImpl implements CrawlService {
         Pattern authorNamePatten = Pattern.compile(ruleBo.getAuthorNamePatten());
         Matcher authorNameMatch = authorNamePatten.matcher(bookDetailHtml);
         boolean isFindAuthorName = authorNameMatch.find();
+        // 没有作者，直接返回
         if (!isFindAuthorName) {
             return;
         }
-
         String authorName = authorNameMatch.group(1);
-        log.info(authorName);
         nowBook.setAuthorName(authorName);
 
         // 封面
@@ -166,45 +174,72 @@ public class CrawlServiceImpl implements CrawlService {
                 .replaceAll("&nbsp;", "")
                 .replaceAll("<p>", "")
                 .replaceAll("</p>", "<br/>");
-        log.info(desc);
         nowBook.setBookDesc(desc);
 
         // 查询书的信息或者保存
         bookService.queryAndSave(nowBook);
 
-        // 正文
-        String indexListHtml;
-        if (StringUtils.isNotBlank(ruleBo.getBookIndexStart())) {
-            indexListHtml = bookDetailHtml.substring(bookDetailHtml.indexOf(ruleBo.getBookIndexStart())
-                    + ruleBo.getBookIndexStart().length());
-        } else {
-            indexListHtml = bookDetailHtml;
+        // 遍历保存
+        int indexCount = 0;
+        log.info("save book index start, bookName:{}, authorName:{}, book:{}", bookName, authorName, JSON.toJSONString(nowBook));
+        while (StringUtils.isNotBlank(bookDetailHtml)) {
+            // 正文
+            String indexListHtml;
+            if (StringUtils.isNotBlank(ruleBo.getBookIndexStart())) {
+                indexListHtml = bookDetailHtml.substring(bookDetailHtml.indexOf(ruleBo.getBookIndexStart())
+                        + ruleBo.getBookIndexStart().length());
+            } else {
+                indexListHtml = bookDetailHtml;
+            }
+            // <li><a\s+href="/chapter/\d+_\d+.html">[^/]+</a></li>
+            Pattern indexIdPatten = Pattern.compile(ruleBo.getIndexIdPatten());
+            Matcher indexIdMatch = indexIdPatten.matcher(indexListHtml);
+            boolean indexIdFind = indexIdMatch.find();
+
+            // 章节名称
+            // <li><a\s+href="/chapter/\d+_\d+.html">([^/]+)</a></li>
+            Pattern indexNamePatten = Pattern.compile(ruleBo.getIndexNamePatten());
+            Matcher indexNameMatch = indexNamePatten.matcher(indexListHtml);
+            boolean indexNameFind = indexNameMatch.find();
+            // 遍历章节
+            while (indexIdFind && indexNameFind) {
+                // 章节名称
+                String indexName = indexNameMatch.group(1);
+                // 爬虫源章节id
+                String indexId = indexIdMatch.group(1);
+                // 保存章节信息
+                this.saveIndexInfo(indexName, indexId, nowBook, ruleBo);
+                log.info("save book index end, bookName:{}, indexName:{}, indexId:{}", bookName, indexName, indexId);
+                // 章节加一
+                indexCount++;
+
+                indexIdFind = indexIdMatch.find();
+                indexNameFind = indexNameMatch.find();
+            }
+
+            // 没有章节下一页匹配，直接返回
+            if (StringUtils.isBlank(ruleBo.getNextIndexUrlPatten())) {
+                break;
+            }
+            // 章节下一页
+            // <a\s+href="(/d/\d+_\d+.html)"\s+class="onclick">下一页</a>
+            Pattern nextIndexPatten = Pattern.compile(ruleBo.getNextIndexUrlPatten());
+            Matcher nextIndexMatch = nextIndexPatten.matcher(bookDetailHtml);
+            boolean nextIndexMatchFind = nextIndexMatch.find();
+            // 没有下一页了，直接返回
+            if (!nextIndexMatchFind) {
+                break;
+            }
+            String nextIndexUrl = nextIndexMatch.group(1);
+            if (StringUtils.isNotBlank(ruleBo.getWebPreUrl())) {
+                bookDetailUrl = ruleBo.getWebPreUrl() + nextIndexUrl;
+            } else {
+                bookDetailUrl = nextIndexUrl;
+            }
+            bookDetailHtml = HttpUtil.get(bookDetailUrl);
         }
-        // <li><a\s+href="/chapter/\d+_\d+.html">[^/]+</a></li>
-        Pattern indexIdPatten = Pattern.compile(ruleBo.getIndexIdPatten());
-        Matcher indexIdMatch = indexIdPatten.matcher(indexListHtml);
-        boolean indexIdFind = indexIdMatch.find();
-
-        // 章节名称
-        // <li><a\s+href="/chapter/\d+_\d+.html">([^/]+)</a></li>
-        Pattern indexNamePatten = Pattern.compile(ruleBo.getIndexNamePatten());
-        Matcher indexNameMatch = indexNamePatten.matcher(indexListHtml);
-        boolean indexNameFind = indexNameMatch.find();
-        // 遍历章节
-        while (indexIdFind && indexNameFind) {
-            String indexName = indexNameMatch.group(1);
-            log.info(indexName);
-
-            String indexId = indexIdMatch.group(1);
-            log.info(indexId);
-            // 保存章节信息
-            this.saveIndexInfo(indexName, indexId, nowBook, ruleBo);
-
-            indexIdFind = indexIdMatch.find();
-            indexNameFind = indexNameMatch.find();
-        }
-
-        // todo 章节分页
+        log.info("save book index end, bookName:{}, authorName:{}, success:{}, indexCount:{}",
+                bookName, authorName, indexCount, JSON.toJSONString(nowBook));
     }
 
     /**
@@ -237,7 +272,6 @@ public class CrawlServiceImpl implements CrawlService {
         // https://wap.shuquge.com/chapter/{bookId}_{indexId}.html
         String contentUrl = ruleBo.getBookContentUrl().replace("{bookId}", nowBook.getSourceBookId()).replace("{indexId}", indexId);
         String contentHtml = HttpUtil.get(contentUrl);
-        log.info(contentHtml);
         StringBuilder allContent = new StringBuilder();
         while (StringUtils.isNotBlank(contentHtml)) {
             // <div id="nr1">
@@ -245,7 +279,6 @@ public class CrawlServiceImpl implements CrawlService {
                     + ruleBo.getContentStart().length());
             // </div>
             content = content.substring(0, content.indexOf(ruleBo.getContentEnd()));
-            log.info(content);
             allContent.append(content).append("\n");
 
             // <a\s+id="pb_next"\s+href="/chapter/\d+_(\d+_\d+).html">下一页</a>
@@ -260,13 +293,20 @@ public class CrawlServiceImpl implements CrawlService {
             contentUrl = ruleBo.getBookContentUrl().replace("{bookId}", nowBook.getSourceBookId()).replace("{indexId}", nextIndexId);
             contentHtml = HttpUtil.get(contentUrl);
         }
-        log.info(allContent.toString());
 
-        String realContent = allContent.toString().replaceAll("&nbsp;", " ")
+        String realContent = allContent.toString()
+                .replaceAll("&nbsp;", " ")
                 .replaceAll("<br />", "")
-                .replaceAll("<br/>", "");
-        log.info(realContent);
-
+                .replaceAll("<br/>", "")
+                .replaceAll("\n\n", "\n")
+                .replaceAll(indexName, "");
+        // 内容匹配替换
+        Map<String, String> contentPattenMap = ruleBo.getContentPattenMap();
+        if (MapUtils.isNotEmpty(contentPattenMap)) {
+            for (Map.Entry<String, String> entry : contentPattenMap.entrySet()) {
+                realContent = realContent.replaceAll(entry.getKey(), entry.getValue());
+            }
+        }
         if (StringUtils.isBlank(realContent)) {
             return;
         }
@@ -282,20 +322,15 @@ public class CrawlServiceImpl implements CrawlService {
 
     @Override
     public void crawlCategory(Integer sourceId) {
-        CrawlSource crawlSource = crawlSourceService.getById(sourceId);
-        if (crawlSource == null) {
+        // 获取爬虫源规则
+        RuleBo ruleBo = crawlSourceService.getRuleBoById(sourceId);
+        if (ruleBo == null) {
             return;
         }
-        String rule = crawlSource.getRule();
-        if (StringUtils.isBlank(rule)) {
-            return;
-        }
-        RuleBo ruleBo = JSON.parseObject(rule, RuleBo.class);
 
+        // 获取分类页url
         String categoryUrl = ruleBo.getCategoryUrl();
         String categoryListHtml = HttpUtil.get(categoryUrl);
-        log.info(categoryListHtml);
-
         if (StringUtils.isBlank(categoryListHtml)) {
             return;
         }
@@ -332,5 +367,84 @@ public class CrawlServiceImpl implements CrawlService {
             isFindCategoryName = categoryNameMatcher.find();
         }
 
+    }
+
+    @Override
+    public void crawlByBookId(Integer sourceId, String bookId) {
+        // 获取爬虫源规则
+        RuleBo ruleBo = crawlSourceService.getRuleBoById(sourceId);
+        if (ruleBo == null) {
+            return;
+        }
+        // https://wap.shuquge.com/s/{bookId}.html
+        String bookDetailUrl = ruleBo.getBookDetailUrl().replace("{bookId}", bookId);
+        // 小说详情页
+        String bookDetailHtml = HttpUtil.get(bookDetailUrl);
+        // 没有内容，直接返回
+        if (StringUtils.isBlank(bookDetailHtml)) {
+            return;
+        }
+        // 分类
+        // <p>分类：<a\s+href="/sort/(\d+)/0_1.html">[^/]+</a></p>
+        Pattern detailCategoryIdPatten = Pattern.compile(ruleBo.getDetailCategoryIdPatten());
+        Matcher detailCategoryIdMatcher = detailCategoryIdPatten.matcher(bookDetailHtml);
+        boolean isFindDetailCategoryId = detailCategoryIdMatcher.find();
+        if (!isFindDetailCategoryId) {
+            return;
+        }
+        String detailCategoryId = detailCategoryIdMatcher.group(1);
+        CategoryInfo categoryInfo = categoryInfoService.getBySourceIdAndCid(sourceId, detailCategoryId);
+        if (categoryInfo == null) {
+            return;
+        }
+        // 开始爬取
+        log.warn("start bookId " + bookId);
+        this.saveBookInfo(bookId, ruleBo, sourceId, categoryInfo.getId());
+        log.warn("end bookId " + bookId);
+    }
+
+    @SneakyThrows
+    @Override
+    public Result download(Long bookId, HttpServletResponse response) {
+        Book book = bookService.getById(bookId);
+        if (book == null) {
+            return Result.error("书本不存在");
+        }
+        // 获取所有章节信息
+        List<BookIndex> bookIndexList = bookIndexService.listByBookId(book.getId());
+        if (CollectionUtils.isEmpty(bookIndexList)) {
+            return Result.error("书本内容为空");
+        }
+        // 获取章节内容
+        List<Long> bookIndexIdList = bookIndexList.stream().map(BookIndex::getId).collect(Collectors.toList());
+        List<BookContent> bookContentList = bookContentService.listByIndexIdList(bookIndexIdList);
+        if (CollectionUtils.isEmpty(bookContentList)) {
+            return Result.error("书本内容为空");
+        }
+        // 章节内容map
+        Map<Long, String> bookContentMap = bookContentList.stream()
+                .collect(Collectors.toMap(BookContent::getIndexId, BookContent::getContent));
+        StringBuilder txt = new StringBuilder(book.getBookName());
+        txt.append("\n 作者:").append(book.getAuthorName());
+        txt.append("\n\n\n\n");
+
+        bookIndexList.sort(Comparator.comparing(BookIndex::getSortId).reversed());
+        for (BookIndex bookIndex : bookIndexList) {
+            String content = bookContentMap.getOrDefault(bookIndex.getId(), "");
+            txt.append(bookIndex.getTitle()).append("\n").append(content).append("\n\n");
+        }
+
+        // 导出
+        response.setCharacterEncoding("utf-8");
+        response.setContentType("text/plain");
+        response.addHeader("Content-Disposition", "attachment;filename="
+                + URLEncoder.encode(book.getBookName(), "UTF-8") + ".txt");
+        ServletOutputStream outputStream = response.getOutputStream();
+        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+        bufferedOutputStream.write(txt.toString().getBytes("utf-8"));
+        bufferedOutputStream.flush();
+        bufferedOutputStream.close();
+        outputStream.close();
+        return null;
     }
 }

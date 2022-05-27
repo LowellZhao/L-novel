@@ -7,6 +7,8 @@ import com.lowellzhao.lnovel.mapper.BookIndexMapper;
 import com.lowellzhao.lnovel.service.BookIndexService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * <p>
  * 章节信息 服务实现类
@@ -26,4 +28,10 @@ public class BookIndexServiceImpl extends ServiceImpl<BookIndexMapper, BookIndex
         return this.getOne(lambdaQueryWrapper);
     }
 
+    @Override
+    public List<BookIndex> listByBookId(Long bookId) {
+        LambdaQueryWrapper<BookIndex> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(BookIndex::getBookId, bookId);
+        return this.list(lambdaQueryWrapper);
+    }
 }

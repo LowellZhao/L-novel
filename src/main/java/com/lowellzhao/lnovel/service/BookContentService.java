@@ -1,7 +1,9 @@
 package com.lowellzhao.lnovel.service;
 
-import com.lowellzhao.lnovel.entity.BookContent;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.lowellzhao.lnovel.entity.BookContent;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +15,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface BookContentService extends IService<BookContent> {
 
+    /**
+     * 获取章节内容集合
+     *
+     * @param bookIndexIdList 章节id集合
+     * @return 章节内容集合
+     */
+    List<BookContent> listByIndexIdList(List<Long> bookIndexIdList);
 }

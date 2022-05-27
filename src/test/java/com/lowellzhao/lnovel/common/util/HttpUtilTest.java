@@ -130,6 +130,18 @@ public class HttpUtilTest {
 
                     }
                 }
+
+                // 下一页
+                // <a\s+href="(/d/\d+_\d+.html)"\s+class="onclick">下一页</a>
+                Pattern nextIndexPatten = Pattern.compile("<a\\s+href=\"(/d/\\d+_\\d+.html)\"\\s+class=\"onclick\">下一页</a>");
+                Matcher nextIndexMatch = nextIndexPatten.matcher(bookDetailHtml);
+                boolean nextIndexMatchFind = nextIndexMatch.find();
+                if (nextIndexMatchFind) {
+                    String nextIndexUrl = nextIndexMatch.group(1);
+                    bookDetailUrl = "https://wap.shuquge.com" + nextIndexUrl;
+                    bookDetailHtml = HttpUtil.get(bookDetailUrl);
+                    System.out.println(bookDetailHtml);
+                }
             }
 
 //            isFindBookId = bookIdMatcher.find();

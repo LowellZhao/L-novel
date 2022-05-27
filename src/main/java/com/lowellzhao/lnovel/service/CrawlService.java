@@ -1,5 +1,9 @@
 package com.lowellzhao.lnovel.service;
 
+import com.lowellzhao.lnovel.common.vo.Result;
+
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * 爬虫服务
  *
@@ -21,4 +25,21 @@ public interface CrawlService {
      * @param sourceId 爬虫源id
      */
     void crawlCategory(Integer sourceId);
+
+    /**
+     * 获取爬虫源，对应bookId的书信息
+     *
+     * @param sourceId 爬虫源
+     * @param bookId   bookId
+     */
+    void crawlByBookId(Integer sourceId, String bookId);
+
+    /**
+     * 小说下载
+     *
+     * @param bookId   bookId
+     * @param response response
+     * @return 小说文件流
+     */
+    Result download(Long bookId, HttpServletResponse response);
 }
