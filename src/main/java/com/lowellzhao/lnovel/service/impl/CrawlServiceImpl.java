@@ -1,7 +1,9 @@
 package com.lowellzhao.lnovel.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.lowellzhao.lnovel.common.util.HtmlUtil;
 import com.lowellzhao.lnovel.common.util.HttpUtil;
+import com.lowellzhao.lnovel.common.util.StringUtil;
 import com.lowellzhao.lnovel.common.vo.Result;
 import com.lowellzhao.lnovel.entity.Book;
 import com.lowellzhao.lnovel.entity.BookContent;
@@ -36,11 +38,16 @@ import java.util.stream.Collectors;
 
 /**
  * @author lowellzhao
- * @date 2022/5/26
+ * @since 2022/5/26
  */
 @Slf4j
 @Service
 public class CrawlServiceImpl implements CrawlService {
+
+    /**
+     * 章节名称正则
+     */
+    private static Pattern INDEX_SORT_PATTERN = Pattern.compile("第([^/]+)章");
 
     @Resource
     private CrawlSourceService crawlSourceService;
@@ -72,7 +79,7 @@ public class CrawlServiceImpl implements CrawlService {
             String bookListUrl = ruleBo.getBookListUrl()
                     .replace("{cid}", categoryInfo.getSourceCid())
                     .replace("{page}", page + "");
-            String bookListHtml = HttpUtil.get(bookListUrl);
+            String bookListHtml = HttpUtil.get(bookListUrl, ruleBo.getCharset());
             // 循环分类页
             while (StringUtils.isNotBlank(bookListHtml)) {
                 // 保存小说信息
@@ -99,7 +106,7 @@ public class CrawlServiceImpl implements CrawlService {
                 bookListUrl = ruleBo.getBookListUrl()
                         .replace("{cid}", categoryInfo.getSourceCid())
                         .replace("{page}", page++ + "");
-                bookListHtml = HttpUtil.get(bookListUrl);
+                bookListHtml = HttpUtil.get(bookListUrl, ruleBo.getCharset());
             }
         }
     }
@@ -119,8 +126,8 @@ public class CrawlServiceImpl implements CrawlService {
         nowBook.setSourceBookId(bookId);
         // https://wap.shuquge.com/s/{bookId}.html
         String bookDetailUrl = ruleBo.getBookDetailUrl().replace("{bookId}", bookId);
-        // 小说详情页
-        String bookDetailHtml = HttpUtil.get(bookDetailUrl);
+        // 小说详情页(目录)
+        String bookDetailHtml = HttpUtil.get(bookDetailUrl, ruleBo.getCharset());
         // 没有内容，直接返回
         if (StringUtils.isBlank(bookDetailHtml)) {
             return;
@@ -236,7 +243,7 @@ public class CrawlServiceImpl implements CrawlService {
             } else {
                 bookDetailUrl = nextIndexUrl;
             }
-            bookDetailHtml = HttpUtil.get(bookDetailUrl);
+            bookDetailHtml = HttpUtil.get(bookDetailUrl, ruleBo.getCharset());
         }
         log.info("save book index end, bookName:{}, authorName:{}, success:{}, indexCount:{}",
                 bookName, authorName, indexCount, JSON.toJSONString(nowBook));
@@ -263,7 +270,19 @@ public class CrawlServiceImpl implements CrawlService {
             if (StringUtils.isNumeric(indexId)) {
                 indexInfo.setSortId(Integer.parseInt(indexId));
             } else {
-                indexInfo.setSortId(0);
+                Matcher indexSortMatch = INDEX_SORT_PATTERN.matcher(indexName);
+                boolean indexSortFind = indexSortMatch.find();
+                if (indexSortFind) {
+                    String indexSort = indexSortMatch.group(1);
+                    if (StringUtils.isNumeric(indexSort)) {
+                        indexInfo.setSortId(Integer.parseInt(indexSort));
+                    } else {
+                        int indexSortNumber = StringUtil.toNumber(indexSort);
+                        indexInfo.setSortId(indexSortNumber);
+                    }
+                } else {
+                    indexInfo.setSortId(0);
+                }
             }
             indexInfo.setTitle(indexName);
             bookIndexService.save(indexInfo);
@@ -271,7 +290,12 @@ public class CrawlServiceImpl implements CrawlService {
 
         // https://wap.shuquge.com/chapter/{bookId}_{indexId}.html
         String contentUrl = ruleBo.getBookContentUrl().replace("{bookId}", nowBook.getSourceBookId()).replace("{indexId}", indexId);
-        String contentHtml = HttpUtil.get(contentUrl);
+        String contentHtml;
+        if (Boolean.TRUE.equals(ruleBo.getContentNeedJs())) {
+            contentHtml = HtmlUtil.getHtml(contentUrl);
+        } else {
+            contentHtml = HttpUtil.get(contentUrl, ruleBo.getCharset());
+        }
         StringBuilder allContent = new StringBuilder();
         while (StringUtils.isNotBlank(contentHtml)) {
             // <div id="nr1">
@@ -280,9 +304,13 @@ public class CrawlServiceImpl implements CrawlService {
             // </div>
             content = content.substring(0, content.indexOf(ruleBo.getContentEnd()));
             allContent.append(content).append("\n");
-
+            // 下一页
             // <a\s+id="pb_next"\s+href="/chapter/\d+_(\d+_\d+).html">下一页</a>
-            Pattern nextContentPatten = Pattern.compile(ruleBo.getNextPagePatten());
+            String nextPagePatten = ruleBo.getNextPagePatten();
+            if (StringUtils.isBlank(nextPagePatten)) {
+                break;
+            }
+            Pattern nextContentPatten = Pattern.compile(nextPagePatten);
             Matcher nextContentMatch = nextContentPatten.matcher(contentHtml);
             boolean nextContentFind = nextContentMatch.find();
             if (!nextContentFind) {
@@ -291,7 +319,7 @@ public class CrawlServiceImpl implements CrawlService {
             // 下一页
             String nextIndexId = nextContentMatch.group(1);
             contentUrl = ruleBo.getBookContentUrl().replace("{bookId}", nowBook.getSourceBookId()).replace("{indexId}", nextIndexId);
-            contentHtml = HttpUtil.get(contentUrl);
+            contentHtml = HttpUtil.get(contentUrl, ruleBo.getCharset());
         }
 
         String realContent = allContent.toString()
@@ -330,7 +358,7 @@ public class CrawlServiceImpl implements CrawlService {
 
         // 获取分类页url
         String categoryUrl = ruleBo.getCategoryUrl();
-        String categoryListHtml = HttpUtil.get(categoryUrl);
+        String categoryListHtml = HttpUtil.get(categoryUrl, ruleBo.getCharset());
         if (StringUtils.isBlank(categoryListHtml)) {
             return;
         }
@@ -379,7 +407,7 @@ public class CrawlServiceImpl implements CrawlService {
         // https://wap.shuquge.com/s/{bookId}.html
         String bookDetailUrl = ruleBo.getBookDetailUrl().replace("{bookId}", bookId);
         // 小说详情页
-        String bookDetailHtml = HttpUtil.get(bookDetailUrl);
+        String bookDetailHtml = HttpUtil.get(bookDetailUrl, ruleBo.getCharset());
         // 没有内容，直接返回
         if (StringUtils.isBlank(bookDetailHtml)) {
             return;

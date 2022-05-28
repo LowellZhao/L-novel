@@ -108,8 +108,16 @@ public class HttpUtil {
      * @return get结果
      */
     public static String get(String url) {
+        return get(url, "UTF-8");
+    }
+
+    public static String get(String url, String charset) {
         if (StringUtils.isBlank(url)) {
             return null;
+        }
+        // 默认utf-8
+        if (StringUtils.isBlank(charset)) {
+            charset = "UTF-8";
         }
         String res = null;
         CloseableHttpResponse response = null;
@@ -118,7 +126,7 @@ public class HttpUtil {
             httpGet.setHeader("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36");
             response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
-            res = EntityUtils.toString(entity, "UTF-8");
+            res = EntityUtils.toString(entity, charset);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.OK.value()) {
                 return res;

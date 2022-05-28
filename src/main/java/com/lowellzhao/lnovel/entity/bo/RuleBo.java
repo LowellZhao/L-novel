@@ -6,11 +6,15 @@ import java.util.Map;
 
 /**
  * @author lowellzhao
- * @date 2022/5/26
+ * @since 2022/5/26
  */
 @Data
 public class RuleBo {
 
+    /**
+     * 字符类型
+     */
+    private String charset;
     /**
      * 分类列表页 url
      */
@@ -99,5 +103,8 @@ public class RuleBo {
      * 内容正则替换
      */
     private Map<String, String> contentPattenMap;
-
+    /**
+     * 内容页是否需要js解析
+     */
+    public Boolean contentNeedJs;
 }

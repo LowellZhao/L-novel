@@ -155,8 +155,6 @@ public class HttpUtilTest {
     public void test02() {
         String categoryListHtml = HttpUtil.get("https://wap.shuquge.com/sort/");
         System.out.println(categoryListHtml);
-
-        System.out.println(categoryListHtml);
         if (StringUtils.isBlank(categoryListHtml)) {
             return;
         }
@@ -181,5 +179,181 @@ public class HttpUtilTest {
         }
     }
 
+    /**
+     * 分类抓取
+     */
+    @Test
+    public void test03() {
+        String categoryListHtml = HttpUtil.get("http://www.newbiquge.com/", "gbk");
+        System.out.println(categoryListHtml);
+        if (StringUtils.isBlank(categoryListHtml)) {
+            return;
+        }
+        // <li><a\s+href="(/\w+/)">[^/]+</a></li>
+        Pattern categoryIdPatten = Pattern.compile("<li><a\\s+href=\"(/\\w+/)\">[^/]+</a></li>");
+        Matcher categoryIdMatcher = categoryIdPatten.matcher(categoryListHtml);
+        boolean isFindCategoryId = categoryIdMatcher.find();
 
+        // <li><a\s+href="/\w+/">([^/]+)</a></li>
+        Pattern categoryNamePatten = Pattern.compile("<li><a\\s+href=\"/\\w+/\">([^/]+)</a></li>");
+        Matcher categoryNameMatcher = categoryNamePatten.matcher(categoryListHtml);
+        boolean isFindCategoryName = categoryNameMatcher.find();
+
+        while (isFindCategoryId && isFindCategoryName) {
+            String categoryId = categoryIdMatcher.group(1);
+            System.out.println(categoryId);
+
+            String categoryName = categoryNameMatcher.group(1);
+            System.out.println(categoryName);
+
+            isFindCategoryId = categoryIdMatcher.find();
+            isFindCategoryName = categoryNameMatcher.find();
+        }
+    }
+
+    /**
+     * 测试抓取
+     */
+    @Test
+    public void test04() {
+        // 分类页
+        String bookListHtml = HttpUtil.get("http://www.newbiquge.com" + "/xuanhuanxiaoshuo/", "gbk");
+        System.out.println(bookListHtml);
+        if (StringUtils.isBlank(bookListHtml)) {
+            return;
+        }
+        // 《<a\s+href="http://www.newbiquge.com/book/(\d+).html"\s+target="_blank">[^/]+</a>》
+        Pattern bookIdPatten = Pattern.compile("《<a\\s+href=\"http://www.newbiquge.com/book/(\\d+).html\"\\s+target=\"_blank\">[^/]+</a>》");
+        Matcher bookIdMatcher = bookIdPatten.matcher(bookListHtml);
+        boolean isFindBookId = bookIdMatcher.find();
+        if (isFindBookId) {
+            String bookId = bookIdMatcher.group(1);
+            System.out.println(bookId);
+            String bookDetailUrl = "http://www.newbiquge.com/book/" + bookId + ".html";
+            String bookDetailHtml = HttpUtil.get(bookDetailUrl, "gbk");
+            System.out.println(bookDetailHtml);
+//            String bookDetailHtml = HtmlUtil.getHtml(bookDetailUrl);
+//            System.out.println(bookDetailHtml);
+            if (StringUtils.isNotBlank(bookDetailHtml)) {
+                // <h1>([^/]+)</h1>
+                Pattern bookNamePatten = Pattern.compile("<h1>([^/]+)</h1>");
+                Matcher bookNameMatch = bookNamePatten.matcher(bookDetailHtml);
+
+                boolean isFindBookName = bookNameMatch.find();
+                if (isFindBookName) {
+                    String bookName = bookNameMatch.group(1);
+                    System.out.println(bookName);
+
+                    // <p>作者：<a.+>([^/]+)</a></p>
+                    Pattern authorNamePatten = Pattern.compile("<p>作者：<a.+>([^/]+)</a></p>");
+                    Matcher authorNameMatch = authorNamePatten.matcher(bookDetailHtml);
+                    boolean isFindAuthorName = authorNameMatch.find();
+                    if (isFindAuthorName) {
+                        String authorName = authorNameMatch.group(1);
+                        System.out.println(authorName);
+
+                        // 封面
+                        // <img\s+src="(https://www.shuquge.com/files/article/image/\d+/\d+/\d+s.jpg)"
+                        // <img src="(http://www.newbiquge.com/files/article/image/.+jpg)"
+                        String picUrlPattenStr = "<img src=\"(http://www.newbiquge.com/files/article/image/.+jpg)\"";
+                        if (StringUtils.isNotBlank(picUrlPattenStr)) {
+                            Pattern picUrlPatten = Pattern.compile(picUrlPattenStr);
+                            Matcher picUrlMatch = picUrlPatten.matcher(bookDetailHtml);
+                            boolean isFindPicUrl = picUrlMatch.find();
+                            if (isFindPicUrl) {
+                                String picUrl = picUrlMatch.group(1);
+                                System.err.println(picUrl);
+                            }
+                        }
+
+                        String startDesc = "<meta property=\"og:description\" content=\"";
+                        int descStartIndex = bookDetailHtml.indexOf(startDesc);
+                        String desc = bookDetailHtml.substring(descStartIndex + startDesc.length());
+                        desc = desc.substring(0, desc.indexOf("\"/>"));
+                        //过滤掉简介中的特殊标签
+                        desc = desc.replaceAll("<a[^<]+</a>", "")
+                                .replaceAll("<font[^<]+</font>", "")
+                                .replaceAll("<p>\\s*</p>", "")
+                                .replaceAll("<p>", "")
+                                .replaceAll("</p>", "<br/>");
+                        System.out.println(desc);
+
+                        String indexListHtml = bookDetailHtml.substring(bookDetailHtml.indexOf("正文") + "正文".length());
+                        // <dd><a\s+href="(/.+).html">([^/]+)</a></dd>
+                        Pattern indexIdPatten = Pattern.compile("<dd><a\\s+href=\"(/.+).html\">[^/]+</a></dd>");
+                        Matcher indexIdMatch = indexIdPatten.matcher(indexListHtml);
+                        boolean indexIdFind = indexIdMatch.find();
+
+                        Pattern indexNamePatten = Pattern.compile("<dd><a\\s+href=\"/.+.html\">([^/]+)</a></dd>");
+                        Matcher indexNameMatch = indexNamePatten.matcher(indexListHtml);
+                        boolean indexNameFind = indexNameMatch.find();
+
+                        if (indexIdFind && indexNameFind) {
+                            String indexName = indexNameMatch.group(1);
+                            System.out.println(indexName);
+                            Pattern indexSortPattern = Pattern.compile("第([^/]+)章");
+                            Matcher indexSortMatch = indexSortPattern.matcher(indexName);
+                            boolean indexSortFind = indexSortMatch.find();
+                            if (indexSortFind) {
+                                String indexSort = indexSortMatch.group(1);
+                                if (StringUtils.isNumeric(indexSort)) {
+                                    System.out.println(Integer.parseInt(indexSort));
+                                } else {
+                                    int indexSortNumber = StringUtil.toNumber(indexSort);
+                                    System.out.println(indexSortNumber);
+                                }
+                            }
+
+                            String indexId = indexIdMatch.group(1);
+                            System.out.println(indexId);
+
+                            String contentUrl = "http://www.newbiquge.com" + indexId + ".html";
+                            String contentHtml = HtmlUtil.getHtml(contentUrl);
+                            System.out.println(contentHtml);
+                            StringBuilder allContent = new StringBuilder();
+                            while (StringUtils.isNotBlank(contentHtml)) {
+                                String startContent = "<div id=\"content\">";
+                                String content = contentHtml.substring(contentHtml.indexOf(startContent) + startContent.length());
+                                String endContent = "</div>";
+                                content = content.substring(0, content.indexOf(endContent));
+                                System.out.println(content);
+                                allContent.append(content).append("\n");
+
+                                // <a\s+id="pb_next"\s+href="/chapter/\d+_(\d+_\d+).html">下一页</a>
+                                Pattern nextContentPatten = Pattern.compile("<a\\s+id=\"pb_next\"\\s+href=\"/chapter/\\d+_(\\d+_\\d+).html\">下一页</a>");
+                                Matcher nextContentMatch = nextContentPatten.matcher(contentHtml);
+                                boolean nextContentFind = nextContentMatch.find();
+                                if (!nextContentFind) {
+                                    break;
+                                }
+//                                String nextIndexId = nextContentMatch.group(1);
+//                                contentUrl = "https://wap.shuquge.com/chapter/" + bookId + "_" + nextIndexId + ".html";
+//                                contentHtml = HttpUtil.get(contentUrl);
+                            }
+                            System.out.println(allContent);
+                            String realContent = allContent.toString().replaceAll("&nbsp;", " ")
+                                    .replaceAll("<br />", "")
+                                    .replaceAll("<br/>", "")
+                                    .replaceAll("\n\n", "\n");
+                            System.out.println(realContent);
+                        }
+                    }
+                }
+//
+//                // 下一页
+//                // <a\s+href="(/d/\d+_\d+.html)"\s+class="onclick">下一页</a>
+//                Pattern nextIndexPatten = Pattern.compile("<a\\s+href=\"(/d/\\d+_\\d+.html)\"\\s+class=\"onclick\">下一页</a>");
+//                Matcher nextIndexMatch = nextIndexPatten.matcher(bookDetailHtml);
+//                boolean nextIndexMatchFind = nextIndexMatch.find();
+//                if (nextIndexMatchFind) {
+//                    String nextIndexUrl = nextIndexMatch.group(1);
+//                    bookDetailUrl = "https://wap.shuquge.com" + nextIndexUrl;
+//                    bookDetailHtml = HttpUtil.get(bookDetailUrl);
+//                    System.out.println(bookDetailHtml);
+//                }
+            }
+
+//            isFindBookId = bookIdMatcher.find();
+        }
+    }
 }
