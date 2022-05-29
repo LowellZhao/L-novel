@@ -2,7 +2,7 @@
 L-novel is one novel crawler
 
 项目创作初衷是看到一个github项目[novel-plus](https://github.com/201206030/novel-plus),让自己也想做个小说爬虫。
-参考代码，自己一步一步都去做大做强。
+参考代码，自己一步一步都去做大做强（主要是自己学习使用）。
 
 
 
@@ -49,3 +49,7 @@ curl --location --request POST '127.0.0.1:8080/lnovel/crawl/byBookId' \
 ```http
 curl --location --request GET 'http://127.0.0.1:8080/lnovel/crawl/download?bookId=1'
 ```
+
+
+## 免责声明
+本项目提供的爬虫工具仅用于采集项目初期的测试数据，请勿用于商业盈利。用户使用本系统从事任何违法违规的事情，一切后果由用户自行承担，作者不承担任何责任。
