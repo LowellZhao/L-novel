@@ -96,9 +96,9 @@ public class RuleBo {
      */
     private String webPreUrl;
     /**
-     * 详情页分类id 正则
+     * 详情页分类名称 正则
      */
-    private String detailCategoryIdPatten;
+    private String detailCategoryNamePatten;
     /**
      * 内容正则替换
      */
@@ -107,4 +107,9 @@ public class RuleBo {
      * 内容页是否需要js解析
      */
     public Boolean contentNeedJs;
+    /**
+     * 章节排序值 正则
+     */
+    private String indexIdSortPattern;
+
 }

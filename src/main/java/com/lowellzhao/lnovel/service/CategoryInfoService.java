@@ -32,4 +32,12 @@ public interface CategoryInfoService extends IService<CategoryInfo> {
      */
     CategoryInfo getBySourceIdAndCid(Integer sourceId, String sourceCid);
 
+    /**
+     * 获取爬虫源分类，根据爬虫源的分类名称
+     *
+     * @param sourceId    爬虫源id
+     * @param sourceCName 爬虫源分类名称
+     * @return 爬虫源分类
+     */
+    CategoryInfo getBySourceIdAndCName(Integer sourceId, String sourceCName);
 }

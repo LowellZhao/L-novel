@@ -270,7 +270,13 @@ public class CrawlServiceImpl implements CrawlService {
             if (StringUtils.isNumeric(indexId)) {
                 indexInfo.setSortId(Integer.parseInt(indexId));
             } else {
-                Matcher indexSortMatch = INDEX_SORT_PATTERN.matcher(indexName);
+                Matcher indexSortMatch;
+                if (StringUtils.isNotBlank(ruleBo.getIndexIdSortPattern())) {
+                    Pattern indexIdSortPattern = Pattern.compile(ruleBo.getIndexIdSortPattern());
+                    indexSortMatch = indexIdSortPattern.matcher(indexId);
+                } else {
+                    indexSortMatch = INDEX_SORT_PATTERN.matcher(indexName);
+                }
                 boolean indexSortFind = indexSortMatch.find();
                 if (indexSortFind) {
                     String indexSort = indexSortMatch.group(1);
@@ -412,16 +418,16 @@ public class CrawlServiceImpl implements CrawlService {
         if (StringUtils.isBlank(bookDetailHtml)) {
             return;
         }
-        // 分类
-        // <p>分类：<a\s+href="/sort/(\d+)/0_1.html">[^/]+</a></p>
-        Pattern detailCategoryIdPatten = Pattern.compile(ruleBo.getDetailCategoryIdPatten());
-        Matcher detailCategoryIdMatcher = detailCategoryIdPatten.matcher(bookDetailHtml);
-        boolean isFindDetailCategoryId = detailCategoryIdMatcher.find();
-        if (!isFindDetailCategoryId) {
+        // 分类名称
+        // <p>分类：<a\s+href="/sort/\d+/0_1.html">([^/]+)</a></p>
+        Pattern detailCategoryNamePatten = Pattern.compile(ruleBo.getDetailCategoryNamePatten());
+        Matcher detailCategoryNameMatcher = detailCategoryNamePatten.matcher(bookDetailHtml);
+        boolean isFindDetailCategoryName = detailCategoryNameMatcher.find();
+        if (!isFindDetailCategoryName) {
             return;
         }
-        String detailCategoryId = detailCategoryIdMatcher.group(1);
-        CategoryInfo categoryInfo = categoryInfoService.getBySourceIdAndCid(sourceId, detailCategoryId);
+        String detailCategoryName = detailCategoryNameMatcher.group(1);
+        CategoryInfo categoryInfo = categoryInfoService.getBySourceIdAndCName(sourceId, detailCategoryName);
         if (categoryInfo == null) {
             return;
         }
