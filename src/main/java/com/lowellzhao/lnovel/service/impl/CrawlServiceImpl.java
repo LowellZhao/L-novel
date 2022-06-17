@@ -329,11 +329,11 @@ public class CrawlServiceImpl implements CrawlService {
         }
 
         String realContent = allContent.toString()
-                .replaceAll("&nbsp;", " ")
-                .replaceAll("<br />", "")
-                .replaceAll("<br/>", "")
-                .replaceAll("\n\n", "\n")
-                .replaceAll(indexName, "");
+                .replace("&nbsp;", " ")
+                .replace("<br />", "")
+                .replace("<br/>", "")
+                .replace("\n\n", "\n")
+                .replace(indexName, "");
         // 内容匹配替换
         Map<String, String> contentPattenMap = ruleBo.getContentPattenMap();
         if (MapUtils.isNotEmpty(contentPattenMap)) {
