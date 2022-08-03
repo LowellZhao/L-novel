@@ -1,4 +1,4 @@
-package com.lowellzhao.lnovel.entity;
+package com.lowellzhao.lnovel.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 分类信息
+ * 章节信息
  * </p>
  *
  * @author lowellzhao
@@ -24,31 +24,43 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("t_category_info")
-public class CategoryInfo extends Model<CategoryInfo> {
+@TableName("t_book_index")
+public class BookIndex extends Model<BookIndex> {
 
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)
-    private Integer id;
+    private Long id;
 
     /**
-     * 爬虫源id
+     * 书id
      */
-    @TableField("source_id")
-    private Integer sourceId;
+    @TableField("book_id")
+    private Long bookId;
 
     /**
-     * 爬虫源分类id
+     * 数据源章节id
      */
-    @TableField("source_cid")
-    private String sourceCid;
+    @TableField("source_index_id")
+    private String sourceIndexId;
 
     /**
-     * 分类名称
+     * 排序值
      */
-    @TableField("cname")
-    private String cname;
+    @TableField("sort_id")
+    private Integer sortId;
+
+    /**
+     * 章节标题
+     */
+    @TableField("title")
+    private String title;
+
+    /**
+     * 是否成功
+     */
+    @TableField("success")
+    private Boolean success;
 
     /**
      * 创建时间

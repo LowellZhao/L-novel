@@ -3,7 +3,7 @@
 <mapper namespace="com.lowellzhao.lnovel.mapper.BookMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.lowellzhao.lnovel.entity.Book">
+    <resultMap id="BaseResultMap" type="com.lowellzhao.lnovel.model.entity.Book">
         <id column="id" property="id" />
         <result column="source_id" property="sourceId" />
         <result column="cid" property="cid" />

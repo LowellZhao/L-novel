@@ -1,7 +1,7 @@
 package com.lowellzhao.lnovel.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lowellzhao.lnovel.entity.CategoryInfo;
+import com.lowellzhao.lnovel.model.entity.CategoryInfo;
 
 import java.util.List;
 

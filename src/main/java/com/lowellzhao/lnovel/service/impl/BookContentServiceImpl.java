@@ -2,7 +2,7 @@ package com.lowellzhao.lnovel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lowellzhao.lnovel.entity.BookContent;
+import com.lowellzhao.lnovel.model.entity.BookContent;
 import com.lowellzhao.lnovel.mapper.BookContentMapper;
 import com.lowellzhao.lnovel.service.BookContentService;
 import org.apache.commons.collections4.CollectionUtils;

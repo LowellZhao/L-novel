@@ -1,7 +1,7 @@
 package com.lowellzhao.lnovel.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lowellzhao.lnovel.entity.BookIndex;
+import com.lowellzhao.lnovel.model.entity.BookIndex;
 
 import java.util.List;
 

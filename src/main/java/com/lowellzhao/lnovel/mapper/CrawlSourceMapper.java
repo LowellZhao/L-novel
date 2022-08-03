@@ -1,6 +1,6 @@
 package com.lowellzhao.lnovel.mapper;
 
-import com.lowellzhao.lnovel.entity.CrawlSource;
+import com.lowellzhao.lnovel.model.entity.CrawlSource;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

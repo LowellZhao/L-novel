@@ -2,7 +2,7 @@ package com.lowellzhao.lnovel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lowellzhao.lnovel.entity.Book;
+import com.lowellzhao.lnovel.model.entity.Book;
 import com.lowellzhao.lnovel.mapper.BookMapper;
 import com.lowellzhao.lnovel.service.BookService;
 import org.springframework.stereotype.Service;

@@ -1,8 +1,10 @@
 package com.lowellzhao.lnovel.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.lowellzhao.lnovel.entity.CrawlSource;
-import com.lowellzhao.lnovel.entity.bo.RuleBo;
+import com.lowellzhao.lnovel.common.vo.Result;
+import com.lowellzhao.lnovel.model.entity.CrawlSource;
+import com.lowellzhao.lnovel.model.bo.RuleBo;
+import com.lowellzhao.lnovel.model.vo.CrawlSourceVo;
 
 /**
  * <p>
@@ -22,4 +24,7 @@ public interface CrawlSourceService extends IService<CrawlSource> {
      */
     RuleBo getRuleBoById(Integer sourceId);
 
+    Result edit(CrawlSourceVo sourceVo);
+
+    Result delete(Integer id);
 }

@@ -3,7 +3,7 @@
 <mapper namespace="com.lowellzhao.lnovel.mapper.CrawlSourceMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.lowellzhao.lnovel.entity.CrawlSource">
+    <resultMap id="BaseResultMap" type="com.lowellzhao.lnovel.model.entity.CrawlSource">
         <id column="id" property="id" />
         <result column="name" property="name" />
         <result column="rule" property="rule" />

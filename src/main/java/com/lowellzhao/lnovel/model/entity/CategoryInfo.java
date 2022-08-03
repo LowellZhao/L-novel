@@ -1,4 +1,4 @@
-package com.lowellzhao.lnovel.entity;
+package com.lowellzhao.lnovel.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 电子书信息
+ * 分类信息
  * </p>
  *
  * @author lowellzhao
@@ -24,55 +24,31 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("t_book")
-public class Book extends Model<Book> {
+@TableName("t_category_info")
+public class CategoryInfo extends Model<CategoryInfo> {
 
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    private Integer id;
 
     /**
-     * 来源id
+     * 爬虫源id
      */
     @TableField("source_id")
     private Integer sourceId;
 
     /**
-     * 分类id
+     * 爬虫源分类id
      */
-    @TableField("cid")
-    private Integer cid;
+    @TableField("source_cid")
+    private String sourceCid;
 
     /**
-     * 爬虫源书id
+     * 分类名称
      */
-    @TableField("source_book_id")
-    private String sourceBookId;
-
-    /**
-     * 书名
-     */
-    @TableField("book_name")
-    private String bookName;
-
-    /**
-     * 封面地址
-     */
-    @TableField("book_pic")
-    private String bookPic;
-
-    /**
-     * 描述
-     */
-    @TableField("book_desc")
-    private String bookDesc;
-
-    /**
-     * 作者
-     */
-    @TableField("author_name")
-    private String authorName;
+    @TableField("cname")
+    private String cname;
 
     /**
      * 创建时间

@@ -1,6 +1,6 @@
 package com.lowellzhao.lnovel.mapper;
 
-import com.lowellzhao.lnovel.entity.Book;
+import com.lowellzhao.lnovel.model.entity.Book;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

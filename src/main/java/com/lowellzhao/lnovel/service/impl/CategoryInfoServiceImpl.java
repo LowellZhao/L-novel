@@ -2,7 +2,7 @@ package com.lowellzhao.lnovel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lowellzhao.lnovel.entity.CategoryInfo;
+import com.lowellzhao.lnovel.model.entity.CategoryInfo;
 import com.lowellzhao.lnovel.mapper.CategoryInfoMapper;
 import com.lowellzhao.lnovel.service.CategoryInfoService;
 import org.springframework.stereotype.Service;

@@ -3,7 +3,7 @@
 <mapper namespace="com.lowellzhao.lnovel.mapper.CategoryInfoMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.lowellzhao.lnovel.entity.CategoryInfo">
+    <resultMap id="BaseResultMap" type="com.lowellzhao.lnovel.model.entity.CategoryInfo">
         <id column="id" property="id" />
         <result column="source_id" property="sourceId" />
         <result column="source_cid" property="sourceCid" />

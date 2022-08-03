@@ -1,4 +1,4 @@
-package com.lowellzhao.lnovel.entity;
+package com.lowellzhao.lnovel.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 章节内容信息
+ * 爬虫源信息
  * </p>
  *
  * @author lowellzhao
@@ -24,25 +24,31 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("t_book_content")
-public class BookContent extends Model<BookContent> {
+@TableName("t_crawl_source")
+public class CrawlSource extends Model<CrawlSource> {
 
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    private Integer id;
 
     /**
-     * 章节id
+     * 爬虫源名称
      */
-    @TableField("index_id")
-    private Long indexId;
+    @TableField("name")
+    private String name;
 
     /**
-     * 内容
+     * 爬虫规则
      */
-    @TableField("content")
-    private String content;
+    @TableField("rule")
+    private String rule;
+
+    /**
+     * 爬虫源状态
+     */
+    @TableField("status")
+    private Integer status;
 
     /**
      * 创建时间
