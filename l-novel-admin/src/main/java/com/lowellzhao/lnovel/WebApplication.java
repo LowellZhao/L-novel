@@ -8,7 +8,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 /**
  * WebApplication
  *
- * @author lwoellzhao
+ * @author lowellzhao
  * @since 2022-05-26
  */
 @Configuration

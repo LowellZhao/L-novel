@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * HttpUtil
  *
- * @author lwoellzhao
+ * @author lowellzhao
  * @since 2022-05-26
  */
 @Slf4j

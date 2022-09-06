@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * JacksonConfig
  *
- * @author lwoellzhao
+ * @author lowellzhao
  * @since 2022-05-26
  */
 @Configuration

@@ -1,5 +1,6 @@
 package com.lowellzhao.lnovel.service;
 
+import com.lowellzhao.lnovel.common.vo.Result;
 import com.lowellzhao.lnovel.model.entity.Book;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -14,5 +15,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface BookService extends IService<Book> {
 
     void queryAndSave(Book book);
+
+    Result readBook(Long bookId, Long indexId);
 
 }

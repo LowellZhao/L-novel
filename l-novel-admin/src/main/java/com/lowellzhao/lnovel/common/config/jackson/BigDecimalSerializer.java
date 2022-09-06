@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 /**
  * BigDecimalSerializer
  *
- * @author lwoellzhao
+ * @author lowellzhao
  * @since 2022-05-26
  */
 public class BigDecimalSerializer extends JsonSerializer<BigDecimal> {

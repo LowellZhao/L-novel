@@ -3,10 +3,10 @@ package com.lowellzhao.lnovel.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.lowellzhao.lnovel.common.vo.Result;
-import com.lowellzhao.lnovel.model.entity.CrawlSource;
 import com.lowellzhao.lnovel.model.bo.RuleBo;
-import com.lowellzhao.lnovel.service.CrawlSourceService;
+import com.lowellzhao.lnovel.model.entity.CrawlSource;
 import com.lowellzhao.lnovel.model.vo.CrawlSourceVo;
+import com.lowellzhao.lnovel.service.CrawlSourceService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +35,11 @@ public class CrawlSourceController {
     @Resource
     private CrawlSourceService crawlSourceService;
 
+    /**
+     * 爬虫源列表查询
+     *
+     * @return 爬虫源列表
+     */
     @GetMapping("/list")
     public Result list() {
         List<CrawlSource> list = crawlSourceService.list();
@@ -54,11 +59,23 @@ public class CrawlSourceController {
         return Result.success(voList);
     }
 
+    /**
+     * 爬虫源编辑
+     *
+     * @param sourceVo 爬虫源信息
+     * @return 编辑结果
+     */
     @PostMapping("/edit")
     public Result edit(@RequestBody @Valid CrawlSourceVo sourceVo) {
         return crawlSourceService.edit(sourceVo);
     }
 
+    /**
+     * 根据爬虫源id，删除爬虫源
+     *
+     * @param sourceVo 爬虫源信息
+     * @return 删除结果
+     */
     @PostMapping("/delete")
     public Result delete(@RequestBody CrawlSourceVo sourceVo) {
         Integer id = sourceVo.getId();
