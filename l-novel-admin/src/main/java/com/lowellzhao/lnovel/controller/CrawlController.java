@@ -1,5 +1,6 @@
 package com.lowellzhao.lnovel.controller;
 
+import com.lowellzhao.lnovel.common.annotation.OptLog;
 import com.lowellzhao.lnovel.common.vo.Result;
 import com.lowellzhao.lnovel.service.CrawlService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +28,7 @@ public class CrawlController {
      * @param sourceId 爬虫源id
      */
     @PostMapping("")
+    @OptLog(optModule = "crawl")
     public Result crawl(Integer sourceId) {
         crawlService.crawl(sourceId);
         return Result.success();
@@ -38,6 +40,7 @@ public class CrawlController {
      * @param sourceId 爬虫源id
      */
     @PostMapping("/category")
+    @OptLog(optModule = "crawl", optType = "category")
     public Result crawlCategory(Integer sourceId) {
         crawlService.crawlCategory(sourceId);
         return Result.success();
@@ -50,6 +53,7 @@ public class CrawlController {
      * @param bookId   bookId
      */
     @PostMapping("/byBookId")
+    @OptLog(optModule = "crawl", optType = "byBookId")
     public Result crawlByBookId(Integer sourceId, String bookId) {
         crawlService.crawlByBookId(sourceId, bookId);
         return Result.success();
@@ -63,6 +67,7 @@ public class CrawlController {
      * @return 小说文件流
      */
     @GetMapping("/download")
+    @OptLog(optModule = "crawl", optType = "download")
     public Result download(Long bookId, HttpServletResponse response) {
         return crawlService.download(bookId, response);
     }

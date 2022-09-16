@@ -3,7 +3,6 @@ package com.lowellzhao.lnovel.common.advice;
 import com.alibaba.fastjson.JSON;
 import com.lowellzhao.lnovel.common.exception.LnovelException;
 import com.lowellzhao.lnovel.common.vo.Result;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -44,26 +43,26 @@ public class LnovelRestControllerAdvice {
      *
      * @param e 异常
      */
-    @SneakyThrows
     private void logParam(Exception e) {
         HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-        // 地址
-        String url = request.getRequestURL().toString();
         // 请求参数
         Map<String, String[]> parameterMap = request.getParameterMap();
         // json参数
         String param = "";
         int contentLength = request.getContentLength();
         if (contentLength > 0) {
-            byte[] buffer = new byte[contentLength];
-            for (int i = 0; i < contentLength; i++) {
-                int read = request.getInputStream().read(buffer, i, contentLength - i);
-                if (read == -1) {
-                    break;
+            try {
+                byte[] buffer = new byte[contentLength];
+                for (int i = 0; i < contentLength; i++) {
+                    int read = request.getInputStream().read(buffer, i, contentLength - i);
+                    if (read == -1) {
+                        break;
+                    }
+                    i += read;
                 }
-                i += read;
+                param = new String(buffer, StandardCharsets.UTF_8);
+            } catch (Exception ignored) {
             }
-            param = new String(buffer, StandardCharsets.UTF_8);
         }
         // 请求头
         Map<String, String> headerMap = new HashMap<>();
@@ -74,8 +73,8 @@ public class LnovelRestControllerAdvice {
             headerMap.put(nextElement, header);
             nextElement = headerNames.nextElement();
         }
-        log.error("exception url:{};\nform参数:{};\nbody参数:{};\n请求头:{}",
-                url, JSON.toJSONString(parameterMap), param, JSON.toJSONString(headerMap), e);
+        log.error("exception url:{};\nmethod:{};\nform参数:{};\nbody参数:{};\n请求头:{}",
+                request.getRequestURI(), request.getMethod(), JSON.toJSONString(parameterMap), param, JSON.toJSONString(headerMap), e);
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)

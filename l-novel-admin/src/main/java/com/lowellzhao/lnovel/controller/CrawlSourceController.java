@@ -2,6 +2,7 @@ package com.lowellzhao.lnovel.controller;
 
 
 import com.alibaba.fastjson.JSON;
+import com.lowellzhao.lnovel.common.annotation.OptLog;
 import com.lowellzhao.lnovel.common.vo.Result;
 import com.lowellzhao.lnovel.model.bo.RuleBo;
 import com.lowellzhao.lnovel.model.entity.CrawlSource;
@@ -66,6 +67,7 @@ public class CrawlSourceController {
      * @return 编辑结果
      */
     @PostMapping("/edit")
+    @OptLog(optModule = "crawlSource", optType = "edit")
     public Result edit(@RequestBody @Valid CrawlSourceVo sourceVo) {
         return crawlSourceService.edit(sourceVo);
     }
@@ -77,6 +79,7 @@ public class CrawlSourceController {
      * @return 删除结果
      */
     @PostMapping("/delete")
+    @OptLog(optModule = "crawlSource", optType = "delete")
     public Result delete(@RequestBody CrawlSourceVo sourceVo) {
         Integer id = sourceVo.getId();
         if (id == null) {

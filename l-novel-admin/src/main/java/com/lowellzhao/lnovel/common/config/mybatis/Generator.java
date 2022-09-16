@@ -26,7 +26,7 @@ public class Generator {
     /**
      * 需要生成的表名
      */
-    private static final String[] TABLE_NAME = {"t_category_info"};
+    private static final String[] TABLE_NAME = {"t_operation_log", "t_menu", "t_user_info"};
     /**
      * 所属模块
      */
@@ -64,7 +64,7 @@ public class Generator {
         autoGenerator.setDataSource(getDataSourceConfig());
         // 全局配置
         GlobalConfig globalConfig = new GlobalConfig();
-        String projectPath = System.getProperty("user.dir") + "/src/main/java/";
+        String projectPath = System.getProperty("user.dir") + "/l-novel-admin/src/main/java/";
         globalConfig.setActiveRecord(true)
                 .setAuthor(AUTHOR)
                 .setOutputDir(projectPath)
@@ -80,7 +80,8 @@ public class Generator {
         autoGenerator.setGlobalConfig(globalConfig);
         // 包配置
         PackageConfig packageConfig = new PackageConfig()
-                .setParent(PACKAGE_NAME);
+                .setParent(PACKAGE_NAME)
+                .setEntity("model.entity");
         autoGenerator.setPackageInfo(packageConfig);
         // 策略配置
         StrategyConfig strategyConfig = new StrategyConfig();

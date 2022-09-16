@@ -28,3 +28,11 @@ hs_err_pid*
 
 **/target/
 **/logs/
+
+
+### vue ###
+**/node_modules
+**/.DS_Store
+**/dist
+**/dist-ssr
+**/*.local

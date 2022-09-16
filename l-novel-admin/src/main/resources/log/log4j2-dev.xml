@@ -2,7 +2,7 @@
 <Configuration>
     <Properties>
         <Property name="PID">????</Property>
-        <Property name="log.pattern">%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}}{faint} %clr{%5p} %clr{${sys:PID}}{magenta} %clr{%-40.40c{1.}}{cyan} %clr{:}{faint} %m%n%xwEx</Property>
+        <Property name="log.pattern">%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}}{faint} %clr{%5p} %clr{${sys:PID}}{magenta} [%15.15t] %clr{%-40.40c{1.}}{cyan} %clr{%-6L}{yellow} %clr{:}{faint} %m%n%xwEx</Property>
 
         <Property name="log.path">logs</Property>
         <Property name="log.filePattern">${log.path}/l-novel-admin/$${date:yyyy-MM-dd}/</Property>
@@ -37,7 +37,7 @@
         <logger name="com.lowellzhao" level="DEBUG"/>
         <Root level="info">
             <appender-ref ref="Console"/>
-            <!--<appender-ref ref="RollingFileInfo"/>-->
+            <appender-ref ref="RollingFileInfo"/>
         </Root>
     </Loggers>
 </Configuration>

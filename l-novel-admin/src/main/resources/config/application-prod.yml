@@ -8,6 +8,11 @@ spring:
       maximum-pool-size: 80
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.zaxxer.hikari.HikariDataSource
+  # redis配置
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password:
 
 logging:
   config: classpath:log/log4j2-prod.xml
