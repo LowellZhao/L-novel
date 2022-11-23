@@ -356,4 +356,150 @@ public class HttpUtilTest {
 //            isFindBookId = bookIdMatcher.find();
         }
     }
+
+    /**
+     * 分类抓取
+     * www.yuanzun888.com
+     */
+    @Test
+    public void test05() {
+        String categoryListHtml = HttpUtil.get("https://www.yuanzun888.com/");
+        System.out.println(categoryListHtml);
+        if (StringUtils.isBlank(categoryListHtml)) {
+            return;
+        }
+        // <li><a href="/([^/]+)/">[^/]+</a></li>
+        Pattern categoryIdPatten = Pattern.compile("<li><a href=\"/([^/]+)/\">[^/]+</a></li>");
+        Matcher categoryIdMatcher = categoryIdPatten.matcher(categoryListHtml);
+        boolean isFindCategoryId = categoryIdMatcher.find();
+
+        // <li><a href="/[^/]+/">([^/]+)</a></li>
+        Pattern categoryNamePatten = Pattern.compile("<li><a href=\"/[^/]+/\">([^/]+)</a></li>");
+        Matcher categoryNameMatcher = categoryNamePatten.matcher(categoryListHtml);
+        boolean isFindCategoryName = categoryNameMatcher.find();
+
+        while (isFindCategoryId && isFindCategoryName) {
+            String categoryId = categoryIdMatcher.group(1);
+            System.out.println(categoryId);
+
+            String categoryName = categoryNameMatcher.group(1);
+            System.out.println(categoryName);
+
+            isFindCategoryId = categoryIdMatcher.find();
+            isFindCategoryName = categoryNameMatcher.find();
+        }
+    }
+
+    /**
+     * 测试抓取
+     * www.yuanzun888.com
+     */
+    @Test
+    public void test06() {
+        String bookListHtml = HttpUtil.get("https://www.yuanzun888.com/xuanhuan/");
+        System.out.println(bookListHtml);
+        if (StringUtils.isBlank(bookListHtml)) {
+            return;
+        }
+        // <span class="s2"><a href="/book/(\d+)/">恶仙</a></span>
+        Pattern bookIdPatten = Pattern.compile("<span class=\"s2\"><a href=\"/book/(\\d+)/\">[^/]+</a></span>");
+        Matcher bookIdMatcher = bookIdPatten.matcher(bookListHtml);
+        boolean isFindBookId = bookIdMatcher.find();
+        if (isFindBookId) {
+            String bookId = bookIdMatcher.group(1);
+            System.out.println(bookId);
+            String bookDetailUrl = "https://www.yuanzun888.com/book/" + bookId;
+            String bookDetailHtml = HttpUtil.get(bookDetailUrl);
+            System.out.println(bookDetailHtml);
+            if (StringUtils.isNotBlank(bookDetailHtml)) {
+                // <h1>([^/]+)</h1>
+                Pattern bookNamePatten = Pattern.compile("<h1>([^/]+)</h1>");
+                Matcher bookNameMatch = bookNamePatten.matcher(bookDetailHtml);
+
+                boolean isFindBookName = bookNameMatch.find();
+                if (isFindBookName) {
+                    String bookName = bookNameMatch.group(1);
+                    System.out.println(bookName);
+
+                    // <p>作&nbsp;&nbsp;&nbsp;&nbsp;者：([^/]+)</p>
+                    Pattern authorNamePatten = Pattern.compile("<p>作&nbsp;&nbsp;&nbsp;&nbsp;者：([^/]+)</p>");
+                    Matcher authorNameMatch = authorNamePatten.matcher(bookDetailHtml);
+                    boolean isFindAuthorName = authorNameMatch.find();
+                    if (isFindAuthorName) {
+                        String authorName = authorNameMatch.group(1);
+                        System.out.println(authorName);
+
+                        // 封面
+                        // <div id="fmimg"><img alt="[^/]+" src="([^/]+)" width="120" height="150" onerror="this.src='/images/nocover.jpg'" /></div>
+                        String picUrlPattenStr = "<div id=\"fmimg\"><img alt=\"[^/]+\" src=\"([^/]+)\"";
+                        if (StringUtils.isNotBlank(picUrlPattenStr)) {
+                            Pattern picUrlPatten = Pattern.compile(picUrlPattenStr);
+                            Matcher picUrlMatch = picUrlPatten.matcher(bookDetailHtml);
+                            boolean isFindPicUrl = picUrlMatch.find();
+                            if (isFindPicUrl) {
+                                String picUrl = picUrlMatch.group(1);
+                                System.err.println(picUrl);
+                            }
+                        }
+
+                        // 简介
+                        int descStartIndex = bookDetailHtml.indexOf("<div id=\"intro\">");
+                        String desc = bookDetailHtml.substring(descStartIndex + "<div id=\"intro\">".length());
+                        desc = desc.substring(0, desc.indexOf("</div>"));
+                        //过滤掉简介中的特殊标签
+                        desc = desc.replaceAll("<a[^<]+</a>", "")
+                                .replaceAll("<font[^<]+</font>", "")
+                                .replaceAll("<p>\\s*</p>", "")
+                                .replaceAll("<p>", "")
+                                .replaceAll("</p>", "<br/>");
+                        System.out.println(desc);
+
+                        String indexListHtml = bookDetailHtml.substring(bookDetailHtml.indexOf("<div class=\"listmain\">") + "<div class=\"listmain\">".length());
+                        // <dd><a href ="/book/\d+/(\d+).html">[^/]+</a></dd>
+                        Pattern indexIdPatten = Pattern.compile("<dd><a href =\"/book/\\d+/(\\d+).html\">[^/]+</a></dd>");
+                        Matcher indexIdMatch = indexIdPatten.matcher(indexListHtml);
+                        boolean indexIdFind = indexIdMatch.find();
+
+                        Pattern indexNamePatten = Pattern.compile("<dd><a href =\"/book/\\d+/\\d+.html\">([^/]+)</a></dd>");
+                        Matcher indexNameMatch = indexNamePatten.matcher(indexListHtml);
+                        boolean indexNameFind = indexNameMatch.find();
+
+                        System.out.println("==============================================================================");
+
+                        if (indexIdFind && indexNameFind) {
+                            String indexName = indexNameMatch.group(1);
+                            System.out.println(indexName);
+
+                            String indexId = indexIdMatch.group(1);
+                            System.out.println(indexId);
+
+                            String contentUrl = "https://www.yuanzun888.com/book/" + bookId + "/" + indexId + ".html";
+                            String contentHtml = HtmlUtil.getHtml(contentUrl);
+                            System.out.println(contentHtml);
+                            StringBuilder allContent = new StringBuilder();
+                            while (StringUtils.isNotBlank(contentHtml)) {
+                                String startContent = "<div id=\"content\" class=\"showtxt\">";
+                                String content = contentHtml.substring(contentHtml.indexOf(startContent) + startContent.length());
+                                String endContent = "</div>";
+                                content = content.substring(0, content.indexOf(endContent));
+                                System.out.println(content);
+                                allContent.append(content).append("\n");
+                                break;
+                            }
+                            System.out.println(allContent);
+                            String realContent = allContent.toString().replaceAll("&nbsp;", " ")
+                                    .replaceAll("<br />", "")
+                                    .replaceAll("天才一秒记住本站地址：www.yuanzun888.com。元尊小说网手机版阅读网址：m.yuanzun888.com", "")
+                                    .replaceAll("<br/>", "");
+                            System.out.println(realContent);
+                        }
+
+                    }
+                }
+            }
+
+            isFindBookId = bookIdMatcher.find();
+        }
+    }
+
 }

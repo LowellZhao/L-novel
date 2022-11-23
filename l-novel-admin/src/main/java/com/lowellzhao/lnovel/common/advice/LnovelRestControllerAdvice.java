@@ -1,10 +1,11 @@
 package com.lowellzhao.lnovel.common.advice;
 
 import com.alibaba.fastjson.JSON;
+import com.lowellzhao.lnovel.common.constant.LNovelConstant;
 import com.lowellzhao.lnovel.common.exception.LnovelException;
 import com.lowellzhao.lnovel.common.vo.Result;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -20,10 +21,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
-import java.nio.charset.StandardCharsets;
 import java.rmi.RemoteException;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -43,55 +41,37 @@ public class LnovelRestControllerAdvice {
      *
      * @param e 异常
      */
-    private void logParam(Exception e) {
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-        // 请求参数
-        Map<String, String[]> parameterMap = request.getParameterMap();
-        // json参数
-        String param = "";
-        int contentLength = request.getContentLength();
-        if (contentLength > 0) {
-            try {
-                byte[] buffer = new byte[contentLength];
-                for (int i = 0; i < contentLength; i++) {
-                    int read = request.getInputStream().read(buffer, i, contentLength - i);
-                    if (read == -1) {
-                        break;
-                    }
-                    i += read;
-                }
-                param = new String(buffer, StandardCharsets.UTF_8);
-            } catch (Exception ignored) {
-            }
+    private Result<Object> logParam(Exception e) {
+        // 请求标识
+        String traceId = MDC.get(LNovelConstant.TRACE_ID);
+        // 请求信息
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (servletRequestAttributes == null) {
+            return Result.error("error", "服务异常，错误编码:" + traceId);
         }
-        // 请求头
-        Map<String, String> headerMap = new HashMap<>();
-        Enumeration<String> headerNames = request.getHeaderNames();
-        String nextElement = headerNames.nextElement();
-        while (StringUtils.isNotBlank(nextElement)) {
-            String header = request.getHeader(nextElement);
-            headerMap.put(nextElement, header);
-            nextElement = headerNames.nextElement();
-        }
-        log.error("exception url:{};\nmethod:{};\nform参数:{};\nbody参数:{};\n请求头:{}",
-                request.getRequestURI(), request.getMethod(), JSON.toJSONString(parameterMap), param, JSON.toJSONString(headerMap), e);
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+
+        // uri
+        String uri = request.getRequestURI();
+        log.error("exception traceId:{} | uri:{} | msg:{}", traceId, uri, e.getMessage(), e);
+        return Result.error("error", "服务异常，错误编码:" + traceId);
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public Result<Object> exception(MissingServletRequestParameterException e) {
-        logParam(e);
+        this.logParam(e);
         return Result.error("缺少必要参数", "缺少参数:" + e.getParameterName());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public Result<Object> exception(HttpMessageNotReadableException e) {
-        logParam(e);
+        this.logParam(e);
         return Result.error("缺少必要参数", "参数无法读取或解析");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public Result<Object> exception(IllegalArgumentException e) {
-        logParam(e);
+        this.logParam(e);
         return Result.error("参数异常", "请求参数不正确");
     }
 
@@ -120,38 +100,32 @@ public class LnovelRestControllerAdvice {
 
     @ExceptionHandler(Exception.class)
     public Result<Object> exception(Exception e) {
-        logParam(e);
-        return Result.error();
+        return this.logParam(e);
     }
 
     @ExceptionHandler(RuntimeException.class)
     public Result<Object> exception(RuntimeException e) {
-        logParam(e);
-        return Result.error();
+        return this.logParam(e);
     }
 
     @ExceptionHandler(RemoteException.class)
     public Result<Object> exception(RemoteException e) {
-        logParam(e);
-        return Result.error();
+        return this.logParam(e);
     }
 
     @ExceptionHandler(IllegalStateException.class)
     public Result<Object> exception(IllegalStateException e) {
-        logParam(e);
-        return Result.error("参数异常", "请求参数不正确");
+        return this.logParam(e);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public Result<Object> exception(ConstraintViolationException e) {
-        logParam(e);
-        return Result.error("请求参数异常", e.getMessage());
+        return this.logParam(e);
     }
 
     @ExceptionHandler(LnovelException.class)
     public Result<Object> exception(LnovelException e) {
-        logParam(e);
-        return Result.error(e.getMessage());
+        return this.logParam(e);
     }
 
 }

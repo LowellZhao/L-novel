@@ -5,11 +5,11 @@ import com.lowellzhao.lnovel.common.util.HtmlUtil;
 import com.lowellzhao.lnovel.common.util.HttpUtil;
 import com.lowellzhao.lnovel.common.util.StringUtil;
 import com.lowellzhao.lnovel.common.vo.Result;
+import com.lowellzhao.lnovel.model.bo.RuleBo;
 import com.lowellzhao.lnovel.model.entity.Book;
 import com.lowellzhao.lnovel.model.entity.BookContent;
 import com.lowellzhao.lnovel.model.entity.BookIndex;
 import com.lowellzhao.lnovel.model.entity.CategoryInfo;
-import com.lowellzhao.lnovel.model.bo.RuleBo;
 import com.lowellzhao.lnovel.service.BookContentService;
 import com.lowellzhao.lnovel.service.BookIndexService;
 import com.lowellzhao.lnovel.service.BookService;
@@ -100,6 +100,11 @@ public class CrawlServiceImpl implements CrawlService {
 
                     // 下一本小说
                     isFindBookId = bookIdMatcher.find();
+                }
+
+                // 没有下一页，直接返回
+                if (!ruleBo.getBookListUrl().contains("{page}")) {
+                    break;
                 }
 
                 // 下一页小说

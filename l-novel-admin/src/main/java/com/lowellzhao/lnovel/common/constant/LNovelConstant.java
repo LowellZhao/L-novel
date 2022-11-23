@@ -10,4 +10,8 @@ public class LNovelConstant {
 
     public static final String LOGIN_REDIS_KEY = "login:user:info:";
 
+    /**
+     * traceId
+     */
+    public static final String TRACE_ID = "traceId";
 }

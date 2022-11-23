@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * 通用拦截获取相关属性
  *
- * @author tailai
+ * @author lowellzhao
  */
 @Slf4j
 @Component

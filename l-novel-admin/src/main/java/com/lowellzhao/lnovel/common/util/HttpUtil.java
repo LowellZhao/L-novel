@@ -1,5 +1,6 @@
 package com.lowellzhao.lnovel.common.util;
 
+import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -22,6 +23,8 @@ import org.springframework.http.HttpStatus;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * HttpUtil
@@ -31,6 +34,21 @@ import java.io.IOException;
  */
 @Slf4j
 public class HttpUtil {
+
+    /**
+     * user-agent 集合
+     */
+    private static final List<String> userAgentList = Arrays.asList(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.18(0x1800123f) NetType/4G Language/zh_CN",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.30(0x18001e29) NetType/WIFI Language/zh_CN",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 16_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.30(0x18001e2e) NetType/4G Language/zh_CN",
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 16_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.28(0x18001c2e) NetType/4G Language/zh_CN",
+            "Mozilla/5.0 (Linux; Android 11; MEIZU 18 Build/RKQ1.210715.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/86.0.4240.99 XWEB/4343 MMWEBSDK/20220903 Mobile Safari/537.36 MMWEBID/9400 MicroMessenger/8.0.28.2240(0x28001C57) WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64 MiniProgramEnv/android",
+            "Mozilla/5.0 (Linux; Android 10; NEO-AL00 Build/HUAWEINEO-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/86.0.4240.99 XWEB/4343 MMWEBSDK/20221011 Mobile Safari/537.36 MMWEBID/10000 MicroMessenger/8.0.30.2260(0x28001E51) WeChat/arm64 Weixin NetType/4G Language/zh_CN ABI/arm64 MiniProgramEnv/android",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.56"
+    );
 
     /**
      * 多线程共享实例
@@ -123,7 +141,7 @@ public class HttpUtil {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet(url);
-            httpGet.setHeader("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36");
+            httpGet.setHeader("user-agent", getUserAgent());
             response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
             res = EntityUtils.toString(entity, charset);
@@ -141,5 +159,14 @@ public class HttpUtil {
         return res;
     }
 
+    /**
+     * 获取随机一个userAgent
+     *
+     * @return userAgent
+     */
+    private static String getUserAgent() {
+        int randomInt = RandomUtil.randomInt(userAgentList.size() - 1);
+        return userAgentList.get(randomInt);
+    }
 
 }

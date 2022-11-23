@@ -1,7 +1,6 @@
 package com.lowellzhao.lnovel.common.util;
 
 import com.alibaba.fastjson.JSON;
-import eu.bitwalker.useragentutils.UserAgent;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
@@ -92,16 +91,6 @@ public class IpUtils {
             log.error("getIpSource error, msg:{}", e.getMessage(), e);
             return "";
         }
-    }
-
-    /**
-     * 获取访问设备
-     *
-     * @param request 请求
-     * @return {@link UserAgent} 访问设备
-     */
-    public static UserAgent getUserAgent(HttpServletRequest request) {
-        return UserAgent.parseUserAgentString(request.getHeader("User-Agent"));
     }
 
 }
